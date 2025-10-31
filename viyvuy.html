@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌱 Plant Disease Detector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff0000 0%, #ff7f00 20%, #ffff00 40%, #00ff00 60%, #0000ff 80%, #8b00ff 100%);
+            background-size: 400% 400%;
+            min-height: 100vh;
+            padding: 20px;
+            animation: rainbowSlide 15s ease-in-out infinite;
+        }
+
+        @keyframes rainbowSlide {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .language-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .lang-btn {
+            padding: 10px 20px;
+            border: 2px solid white;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .lang-btn.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .lang-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .install-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: #48bb78;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(72,187,120,0.4);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .install-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(72,187,120,0.6);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(102,126,234,0.05);
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: rgba(102,126,234,0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-area img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102,126,234,0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #c53030;
+            transform: translateY(-2px);
+        }
+
+        .result-box {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 200px;
+        }
+
+        .result-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .chat-container {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 15px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            max-width: 80%;
+            animation: messageSlide 0.3s ease-out;
+        }
+
+        .message.user {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+        }
+
+        .message.ai {
+            background: white;
+            color: #2d3748;
+            border: 1px solid #e2e8f0;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: 1em;
+        }
+
+        .example-questions {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .example-q {
+            padding: 8px 15px;
+            background: rgba(102,126,234,0.1);
+            border: 1px solid #667eea;
+            border-radius: 20px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .example-q:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .language-toggle {
+                top: 10px;
+                right: 10px;
+            }
+            .install-btn {
+                top: 10px;
+                left: 10px;
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="install-btn" onclick="showInstallGuide()">📥 <span data-en="Install App" data-hi="ऐप इंस्टॉल करें">Install App</span></button>
+    
+    <div class="language-toggle">
+        <button class="lang-btn active" onclick="setLanguage('en')">English</button>
+        <button class="lang-btn" onclick="setLanguage('hi')">हिंदी</button>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🌱 <span data-en="Plant Disease Detector" data-hi="पौधे रोग डिटेक्टर">Plant Disease Detector</span></h1>
+            <p data-en="AI-Powered Plant Health Analysis" data-hi="AI से पौधों की सेहत का विश्लेषण">AI-Powered Plant Health Analysis</p>
+        </div>
+
+        <div class="main-grid">
+            <div class="card">
+                <h2 data-en="Upload Plant Image" data-hi="पौधे की फोटो अपलोड करें">Upload Plant Image</h2>
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                    <p data-en="📸 Click or drag to upload plant image" data-hi="📸 फोटो अपलोड करने के लिए क्लिक करें">📸 Click or drag to upload plant image</p>
+                    <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileSelect(event)">
+                    <img id="previewImage" style="display:none">
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" id="detectBtn" onclick="detectDisease()" disabled>
+                        <span data-en="🔍 Detect Disease" data-hi="🔍 रोग का पता लगाएं">🔍 Detect Disease</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearAll()">
+                        <span data-en="🗑️ Clear" data-hi="🗑️ साफ करें">🗑️ Clear</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 data-en="Analysis Result" data-hi="विश्लेषण परिणाम">Analysis Result</h2>
+                <div class="result-box" id="resultBox">
+                    <p data-en="Upload an image and click detect to see results..." data-hi="परिणाम देखने के लिए फोटो अपलोड करें और डिटेक्ट पर क्लिक करें...">Upload an image and click detect to see results...</p>
+                </div>
+                <div style="text-align: center; margin-top: 15px;">
+                    <button class="btn btn-primary" onclick="downloadReport()">
+                        <span data-en="📥 Download" data-hi="📥 डाउनलोड">📥 Download</span>
+                    </button>
+                    <button class="btn btn-primary" onclick="shareReport()">
+                        <span data-en="📤 Share" data-hi="📤 शेयर">📤 Share</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🤖 <span data-en="AI Plant Doctor Chat" data-hi="AI प्लांट डॉक्टर चैट">AI Plant Doctor Chat</span></h2>
+            <p data-en="Ask me anything about plant diseases, treatments, and care!" data-hi="पौधों की बीमारियों, उपचार और देखभाल के बारे में कुछ भी पूछें!">Ask me anything about plant diseases, treatments, and care!</p>
+            
+            <div class="example-questions">
+                <span class="example-q" onclick="askQuestion(this)" data-en="How to treat leaf blight?" data-hi="पत्तियों की झुलसन का इलाज कैसे करें?">How to treat leaf blight?</span>
+                <span class="example-q" onclick="askQuestion(this)" data-en="What causes yellow leaves?" data-hi="पीली पत्तियां क्यों होती हैं?">What causes yellow leaves?</span>
+                <span class="example-q" onclick="askQuestion(this)" data-en="Best organic pesticide?" data-hi="सबसे अच्छा जैविक कीटनाशक?">Best organic pesticide?</span>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-input-area">
+                    <input type="text" class="chat-input" id="chatInput" data-en-placeholder="Ask me about your plant..." data-hi-placeholder="अपने पौधे के बारे में पूछें..." placeholder="Ask me about your plant..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+                    <button class="btn btn-primary" onclick="sendChatMessage()">📤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLang = 'en';
+        let selectedImage = null;
+        let lastAnalysis = null;
+        const API_KEY = 'sk-or-v1-cc8b6ea2043f12339650ac5 0e4d054572be212448f1dc1094225daff42b3e58c'.replace(/ /g, '');
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('[data-en]').forEach(el => {
+                el.textContent = el.getAttribute('data-' + lang);
+            });
+            
+            const chatInput = document.getElementById('chatInput');
+            chatInput.placeholder = lang === 'en' ? 'Ask me about your plant...' : 'अपने पौधे के बारे में पूछें...';
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    selectedImage = e.target.result;
+                    const preview = document.getElementById('previewImage');
+                    preview.src = selectedImage;
+                    preview.style.display = 'block';
+                    document.getElementById('detectBtn').disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function detectDisease() {
+            if (!selectedImage) return;
+
+            const btn = document.getElementById('detectBtn');
+            const resultBox = document.getElementById('resultBox');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> ' + (currentLang === 'en' ? 'Analyzing...' : 'विश्लेषण हो रहा है...');
+            resultBox.innerHTML = '<p>' + (currentLang === 'en' ? '🔍 Analyzing plant image...' : '🔍 पौधे की फोटो का विश्लेषण हो रहा है...') + '</p>';
+
+            try {
+                const base64Image = selectedImage.split(',')[1];
+                const mimeType = selectedImage.split(';')[0].split(':')[1];
+                
+                const prompt = currentLang === 'en' 
+                    ? `Analyze this plant leaf image and provide a detailed diagnosis:
+                    
+1. Disease Name: Identify the specific disease (if any)
+2. Symptoms: Describe visible symptoms
+3. Treatment: Recommend treatment methods (both organic and chemical)
+4. Climate: Ideal conditions to prevent this disease
+5. Prevention: Tips to prevent future occurrences
+
+Format the response clearly with headings.`
+                    : `इस पौधे की पत्ती की फोटो का विश्लेषण करें और विस्तृत निदान प्रदान करें:
+
+1. रोग का नाम: विशिष्ट रोग की पहचान करें (यदि कोई हो)
+2. लक्षण: दिखाई देने वाले लक्षणों का वर्णन करें
+3. उपचार: उपचार के तरीके सुझाएं (जैविक और रासायनिक दोनों)
+4. जलवायु: इस रोग को रोकने के लिए आदर्श स्थितियां
+5. रोकथाम: भविष्य में रोकने के टिप्स
+
+स्पष्ट शीर्षकों के साथ जवाब दें।`;
+
+                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': window.location.href,
+                        'X-Title': 'Plant Disease Detector'
+                    },
+                    body: JSON.stringify({
+                        model: 'anthropic/claude-3.5-sonnet',
+                        messages: [{
+                            role: 'user',
+                            content: [
+                                { type: 'text', text: prompt },
+                                { 
+                                    type: 'image_url', 
+                                    image_url: { url: `data:${mimeType};base64,${base64Image}` }
+                                }
+                            ]
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error Response:', errorText);
+                    throw new Error(`API Error ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('API Response:', data);
+
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    lastAnalysis = data.choices[0].message.content;
+                    resultBox.innerHTML = `<div style="white-space: pre-wrap;">${lastAnalysis}</div>`;
+                } else {
+                    throw new Error('Invalid response format from API');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                const errorMsg = error.message;
+                
+                resultBox.innerHTML = `<p style="color: red;">❌ ${errorMsg}</p>
+                    <p style="font-size: 0.9em; margin-top: 10px; font-weight: bold;">${currentLang === 'en' ? '🔧 Troubleshooting:' : '🔧 समस्या निवारण:'}</p>
+                    <ol style="font-size: 0.9em; margin-left: 20px;">
+                        <li>${currentLang === 'en' ? 'Check internet connection' : 'इंटरनेट कनेक्शन जांचें'}</li>
+                        <li>${currentLang === 'en' ? 'Verify API key has credits at <a href="https://openrouter.ai/credits" target="_blank">OpenRouter</a>' : 'OpenRouter पर API की क्रेडिट जांचें'}</li>
+                        <li>${currentLang === 'en' ? 'Make sure app is hosted online (not file://)' : 'ऐप ऑनलाइन होस्ट है (file:// नहीं)'}</li>
+                        <li>${currentLang === 'en' ? 'Check browser console (F12) for details' : 'ब्राउज़र कंसोल (F12) जांचें'}</li>
+                    </ol>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = currentLang === 'en' ? '🔍 Detect Disease' : '🔍 रोग का पता लगाएं';
+            }
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const messagesDiv = document.getElementById('chatMessages');
+            
+            messagesDiv.innerHTML += `<div class="message user">${message}</div>`;
+            input.value = '';
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            messagesDiv.innerHTML += `<div class="message ai"><span class="loading"></span> ${currentLang === 'en' ? 'Thinking...' : 'सोच रहा हूं...'}</div>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            try {
+                const systemPrompt = currentLang === 'en'
+                    ? 'You are an expert plant doctor. Answer questions about plant diseases, treatments, and care in a helpful and detailed way.'
+                    : 'आप एक विशेषज्ञ पौधे डॉक्टर हैं। पौधों की बीमारियों, उपचार और देखभाल के बारे में सहायक और विस्तृत तरीके से जवाब दें।';
+
+                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': window.location.href,
+                        'X-Title': 'Plant Disease Detector'
+                    },
+                    body: JSON.stringify({
+                        model: 'anthropic/claude-3.5-sonnet',
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: message }
+                        ]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const lastMessage = messagesDiv.lastElementChild;
+                
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    lastMessage.textContent = data.choices[0].message.content;
+                } else {
+                    lastMessage.textContent = currentLang === 'en' 
+                        ? '❌ Sorry, I could not process your request.' 
+                        : '❌ क्षमा करें, मैं आपके अनुरोध को संसाधित नहीं कर सका।';
+                }
+            } catch (error) {
+                console.error('Chat error:', error);
+                const lastMessage = messagesDiv.lastElementChild;
+                lastMessage.innerHTML = currentLang === 'en' 
+                    ? '❌ Error connecting to AI.<br><small>Check credits at <a href="https://openrouter.ai/credits" target="_blank">OpenRouter</a></small>' 
+                    : '❌ AI से कनेक्ट करने में त्रुटि।<br><small><a href="https://openrouter.ai/credits" target="_blank">OpenRouter</a> पर क्रेडिट जांचें</small>';
+            }
+            
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function askQuestion(element) {
+            const question = element.textContent;
+            document.getElementById('chatInput').value = question;
+            sendChatMessage();
+        }
+
+        function downloadReport() {
+            if (!lastAnalysis) {
+                alert(currentLang === 'en' ? 'No analysis to download. Please detect a disease first.' : 'डाउनलोड करने के लिए कोई विश्लेषण नहीं। कृपया पहले रोग का पता लगाएं।');
+                return;
+            }
+
+            const blob = new Blob([lastAnalysis], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'plant-disease-report.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function shareReport() {
+            if (!lastAnalysis) {
+                alert(currentLang === 'en' ? 'No analysis to share. Please detect a disease first.' : 'शेयर करने के लिए कोई विश्लेषण नहीं। कृपया पहले रोग का पता लगाएं।');
+                return;
+            }
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Plant Disease Analysis',
+                    text: lastAnalysis
+                }).catch(err => console.log('Share failed:', err));
+            } else {
+                navigator.clipboard.writeText(lastAnalysis).then(() => {
+                    alert(currentLang === 'en' ? '✅ Report copied to clipboard!' : '✅ रिपोर्ट क्लिपबोर्ड पर कॉपी हो गई!');
+                });
+            }
+        }
+
+        function clearAll() {
+            selectedImage = null;
+            lastAnalysis = null;
+            document.getElementById('previewImage').style.display = 'none';
+            document.getElementById('previewImage').src = '';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('resultBox').innerHTML = '<p>' + (currentLang === 'en' ? 'Upload an image and click detect to see results...' : 'परिणाम देखने के लिए फोटो अपलोड करें और डिटेक्ट पर क्लिक करें...') + '</p>';
+            document.getElementById('detectBtn').disabled = true;
+        }
+
+        function showInstallGuide() {
+            const msg = currentLang === 'en' 
+                ? `📱 To Install This App:\n\n🖥️ Desktop:\n• Look for the install icon (⊕) in your browser's address bar\n• Or click browser menu (⋮) → "Install Plant Disease Detector"\n\n📱 Mobile:\n• Tap browser menu (⋮)\n• Select "Add to Home Screen" or "Install App"\n\n🍎 iPhone:\n• Tap Share button\n• Select "Add to Home Screen"\n\nThis app works offline once installed!`
+                : `📱 इस ऐप को इंस्टॉल करने के लिए:\n\n🖥️ डेस्कटॉप:\n• अपने ब्राउज़र के एड्रेस बार में इंस्टॉल आइकन (⊕) देखें\n• या ब्राउज़र मेनू (⋮) → "Plant Disease Detector इंस्टॉल करें"\n\n📱 मोबाइल:\n• ब्राउज़र मेनू (⋮) टैप करें\n• "होम स्क्रीन में जोड़ें" चुनें\n\n🍎 iPhone:\n• शेयर बटन टैप करें\n• "होम स्क्रीन में जोड़ें" चुनें\n\nइंस्टॉल होने के बाद यह ऐप ऑफलाइन काम करता है!`;
+            alert(msg);
+        }
+    </script>
+</body>
+</html>
